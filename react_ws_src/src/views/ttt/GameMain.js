@@ -26,13 +26,23 @@ export default class SetName extends Component {
 		]
 
 
-		if (this.props.game_type != 'live')
+		if (this.props.game_type != 'live') {
+			// Ramdom pick to know if the computer of the player starts the game
+			const randomBoolean = () => Math.random() >= 0.5;
+			const isPlayerTurn = randomBoolean();
+
 			this.state = {
 				cell_vals: {},
-				next_turn_ply: true,
+				next_turn_ply: isPlayerTurn,
 				game_play: true,
 				game_stat: 'Start game'
 			}
+
+			if (!isPlayerTurn) {
+				// Setting the first turn of the computer
+				setTimeout(this.turn_comp.bind(this), rand_to_fro(500, 1000))
+			}
+		}
 		else {
 			this.sock_start()
 
@@ -54,6 +64,8 @@ export default class SetName extends Component {
 
 //	------------------------	------------------------	------------------------
 //	------------------------	------------------------	------------------------
+
+	
 
 	sock_start () {
 
@@ -102,6 +114,7 @@ export default class SetName extends Component {
 					{cell_vals && cell_vals[c]=='o' && <i className="fa fa-circle-o fa-5x"></i>}
 				</div>)
 	}
+	
 
 //	------------------------	------------------------	------------------------
 
@@ -140,8 +153,11 @@ export default class SetName extends Component {
 					</tbody>
 					</table>
 				</div>
+				
 
-				<button type='submit' onClick={this.end_game.bind(this)} className='button'><span>End Game <span className='fa fa-caret-right'></span></span></button>
+				<button type='submit' onClick={this.start_game.bind(this)} className='button'><span>Restart game&nbsp;&nbsp;<span className='fa fa-caret-right'></span></span></button>
+				&nbsp;&nbsp;&nbsp;&nbsp;
+				<button type='submit' onClick={this.end_game.bind(this)} className='button mr-3'><span>End Game&nbsp;&nbsp;<span className='fa fa-caret-right'></span></span></button>
 
 			</div>
 		)
@@ -338,6 +354,30 @@ export default class SetName extends Component {
 		this.props.onEndGame()
 	}
 
+	start_game () {
+		// Picking ramdomly the start player
+		const randomBoolean = () => Math.random() >= 0.5;
+		const isPlayerTurn = randomBoolean();
+		
+		// Reseting the winning visuals on the board (red background)
+		let set
+		for (let i=0; i<this.win_sets.length; i++) {
+			set = this.win_sets[i]
+			this.refs[set[0]].classList.remove('win')
+			this.refs[set[1]].classList.remove('win')
+			this.refs[set[2]].classList.remove('win')
+		}
 
+		// Initializing the board state
+		this.setState({
+			cell_vals: {},
+			next_turn_ply: isPlayerTurn,
+			game_play: true,
+			game_stat: 'Start game'
+		})
+		if (!isPlayerTurn) {
+			setTimeout(this.turn_comp.bind(this), rand_to_fro(500, 1000))
+		}
+	}
 
 }
