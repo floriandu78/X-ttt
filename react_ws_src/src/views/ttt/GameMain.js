@@ -33,9 +33,11 @@ export default class SetName extends Component {
 
 			this.state = {
 				cell_vals: {},
-				next_turn_ply: isPlayerTurn,
+				computer_score: 0,
 				game_play: true,
-				game_stat: 'Start game'
+				game_stat: 'Start game',
+				next_turn_ply: isPlayerTurn,
+				player_score: 0,
 			}
 
 			if (!isPlayerTurn) {
@@ -127,10 +129,21 @@ export default class SetName extends Component {
 
 				<h1>Play {this.props.game_type}</h1>
 
-				<div id="game_stat">
-					<div id="game_stat_msg">{this.state.game_stat}</div>
-					{this.state.game_play && <div id="game_turn_msg">{this.state.next_turn_ply ? 'Your turn' : 'Opponent turn'}</div>}
+
+				<div id="game_stat_container">
+					<div id="game_score">
+						<h2 id="game_stat_msg">Scoreboard</h2>
+						<div id="score_board">Player <b>{this.state.player_score}</b> - Computer <b>{this.state.computer_score}</b> </div>
+
+						<div onClick={this.reset_score.bind(this)} className='button'><span>Reset score&nbsp;&nbsp;<span className='fa fa-caret-right'></span></span></div>
+
+					</div>
+					<div id="game_stat">
+						<div id="game_stat_msg">{this.state.game_stat}</div>
+						{this.state.game_play && <div id="game_turn_msg">{this.state.next_turn_ply ? 'Your turn' : 'Opponent turn'}</div>}
+					</div>
 				</div>
+
 
 				<div id="game_board">
 					<table>
@@ -153,12 +166,15 @@ export default class SetName extends Component {
 					</tbody>
 					</table>
 				</div>
+
+
+				<div id="game_buttons">
+					{!this.state.game_play && 
+							<button type='submit' onClick={this.start_game.bind(this)} className='button'><span>Play again&nbsp;&nbsp;<span className='fa fa-caret-right'></span></span></button>
+					}
 				
-
-				<button type='submit' onClick={this.start_game.bind(this)} className='button'><span>Restart game&nbsp;&nbsp;<span className='fa fa-caret-right'></span></span></button>
-				&nbsp;&nbsp;&nbsp;&nbsp;
-				<button type='submit' onClick={this.end_game.bind(this)} className='button mr-3'><span>End Game&nbsp;&nbsp;<span className='fa fa-caret-right'></span></span></button>
-
+					<button type='submit' onClick={this.end_game.bind(this)} className='button'><span>End Game&nbsp;&nbsp;<span className='fa fa-caret-right'></span></span></button>
+				</div>
 			</div>
 		)
 	}
@@ -320,9 +336,15 @@ export default class SetName extends Component {
 			TweenMax.killAll(true)
 			TweenMax.from('td.win', 1, {opacity: 0, ease: Linear.easeIn})
 
+			const didPlayerWin = cell_vals[set[0]]=='x';
+			const playerScoreToAdd = didPlayerWin ? 1 : 0;
+			const computerScoreToAdd = didPlayerWin? 0 : 1
+
 			this.setState({
-				game_stat: (cell_vals[set[0]]=='x'?'You':'Opponent')+' win',
-				game_play: false
+				computer_score: this.state.computer_score += computerScoreToAdd,
+				game_play: false,
+				game_stat: (didPlayerWin?'You':'Opponent')+' win',
+				player_score: this.state.player_score += playerScoreToAdd,
 			})
 
 			this.socket && this.socket.disconnect();
@@ -371,13 +393,21 @@ export default class SetName extends Component {
 		// Initializing the board state
 		this.setState({
 			cell_vals: {},
-			next_turn_ply: isPlayerTurn,
 			game_play: true,
-			game_stat: 'Start game'
+			game_stat: 'Start game',
+			next_turn_ply: isPlayerTurn,
 		})
 		if (!isPlayerTurn) {
 			setTimeout(this.turn_comp.bind(this), rand_to_fro(500, 1000))
 		}
+	}
+
+	reset_score () {
+		this.setState({
+			computer_score: 0,
+			player_score: 0,
+		})
+		this.start_game()
 	}
 
 }
